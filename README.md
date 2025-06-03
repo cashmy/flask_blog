@@ -28,9 +28,14 @@ The original project underwent several key modifications:
 
 * User Registration
 * User Login & Logout
+* Password Reset (via email typical for a blog)
+* Email Notifications with Flask-Mail & Tokens (for password reset)
 * Create, Read, Update, and Delete (CRUD) Blog Posts (implied, typical for a blog)
-* Display of Blog Posts on the Homepage
+* Display of Blog Posts on the Homepage with Pagination
+* Display of Blog Post by Author
 * User-specific content (e.g., account page)
+* Custom Error Pages (e.g., 404 Not Found)
+* Route Protection (e.g., login required for certain pages)
 
 ## Project Structure Overview 📂
 
