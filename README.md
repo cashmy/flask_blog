@@ -4,6 +4,8 @@ Welcome to Flask_Blog! This project was developed as a way to get re-acquainted 
 
 As someone with extensive experience in Django, this project served as a practical exercise to explore the nuances of Flask and integrate modern Python development tools.
 
+Note: This project is not intended for production use; it is a learning exercise and should be treated as such. However it is at a stage where it can be deployed for educational purposes or as a starting point for further development.
+
 ## Key Updates and Modernizations 🛠️
 
 The original project underwent several key modifications:
