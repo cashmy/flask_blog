@@ -51,11 +51,9 @@ def logout():
     return redirect(url_for('main.home'))
 
 
+# The helper function 'upload_to_vercel_blob' should also be in this file, or imported
 def upload_to_vercel_blob(file_storage):
-    """
-    Uploads a file to Vercel Blob and returns the public URL.
-    Returns None if the upload fails.
-    """
+    # ... (the full helper function from the previous answer) ...
     # 1. Get credentials and read file data
     blob_token = os.environ.get('BLOB_READ_WRITE_TOKEN')
     if not blob_token:
@@ -67,7 +65,6 @@ def upload_to_vercel_blob(file_storage):
     _, f_ext = os.path.splitext(file_storage.filename)
     unique_filename = random_hex + f_ext
     
-    # You can add a folder path for organization
     blob_path = f"profile_pics/{unique_filename}"
 
     # 3. Construct the API URL and headers
@@ -84,58 +81,54 @@ def upload_to_vercel_blob(file_storage):
             data=file_storage.read(),
             headers=headers
         )
-        response.raise_for_status()  # Raise an error for bad status codes
-        
-        # 5. Return the public URL from the response
+        response.raise_for_status()
         return response.json().get('url')
 
     except requests.exceptions.RequestException as e:
         flash(f'Error uploading file: {e}', 'danger')
         return None
 
-
+# --- THIS IS THE FUNCTION TO REPLACE ---
 @users.route('/account', methods=['GET', 'POST'])
 @login_required
 def account():
     form = UpdateAccountForm()
     if form.validate_on_submit():
-        # If the user submitted a new picture, upload it
+        # This is the POST request logic
         if form.picture.data:
             public_url = upload_to_vercel_blob(form.picture.data)
             if public_url:
-                # If upload was successful, save the new URL
                 current_user.image_file = public_url
 
-        # Update other user details
         current_user.username = form.username.data
         current_user.email = form.email.data
         db.session.commit()
-        
         flash('Your account has been updated!', 'success')
         return redirect(url_for('users.account'))
 
     elif request.method == 'GET':
-        # Pre-populate the form with current user data
+        # This block runs for GET requests
         form.username.data = current_user.username
         form.email.data = current_user.email
 
-    # --- THIS IS THE CORRECTED LOGIC ---
-    # Determine the correct image URL to render in the template.
+    # --- THIS CRUCIAL LOGIC BLOCK WAS MISSING ---
+    # It runs for GET requests AFTER the elif block above.
+    # It GUARANTEES the 'image_file' variable is created before the return statement.
     image_source = current_user.image_file
 
     if image_source and image_source.startswith('http'):
-        # If the source starts with 'http', it's a full URL from Vercel Blob. Use it directly.
-        image_url_to_render = image_source
+        # Case 1: The user has a full Vercel Blob URL.
+        image_file = image_source
     else:
-        # Otherwise, it's a local filename (like 'default.jpg') from the old system.
-        # Use url_for() to build the correct path to the static folder.
-        # We also provide a fallback to 'default.jpg' if the field is empty.
+        # Case 2: The user has an old filename (e.g., 'default.jpg').
         filename = image_source or 'default.jpg'
-        image_url_to_render = url_for('static', filename=f'profile_pics/{filename}')
-
+        image_file = url_for('static', filename=f'profile_pics/{filename}')
+    
+    # Now, 'image_file' is guaranteed to exist.
     return render_template(
         'account.html', title='Account', image_file=image_file, form=form
     )
+
 
 
 @users.route("/user/<string:username>")
