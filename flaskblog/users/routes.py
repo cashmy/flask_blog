@@ -1,3 +1,7 @@
+import secrets
+import os
+import requests
+
 from flask import render_template, url_for, flash, redirect, request, Blueprint
 from flask_login import current_user, login_required, login_user, logout_user
 from flaskblog import db, bcrypt
@@ -46,28 +50,82 @@ def logout():
     logout_user()
     return redirect(url_for('main.home'))
 
+
+def upload_to_vercel_blob(file_storage):
+    """
+    Uploads a file to Vercel Blob and returns the public URL.
+    Returns None if the upload fails.
+    """
+    # 1. Get credentials and read file data
+    blob_token = os.environ.get('BLOB_READ_WRITE_TOKEN')
+    if not blob_token:
+        flash('Blob storage credentials are not configured.', 'danger')
+        return None
+
+    # 2. Generate a secure, random filename
+    random_hex = secrets.token_hex(8)
+    _, f_ext = os.path.splitext(file_storage.filename)
+    unique_filename = random_hex + f_ext
     
+    # You can add a folder path for organization
+    blob_path = f"profile_pics/{unique_filename}"
+
+    # 3. Construct the API URL and headers
+    upload_url = f"https://blob.vercel-storage.com/{blob_path}"
+    headers = {
+        'Authorization': f'Bearer {blob_token}',
+        'Content-Type': file_storage.content_type
+    }
+
+    # 4. Upload the file
+    try:
+        response = requests.put(
+            upload_url,
+            data=file_storage.read(),
+            headers=headers
+        )
+        response.raise_for_status()  # Raise an error for bad status codes
+        
+        # 5. Return the public URL from the response
+        return response.json().get('url')
+
+    except requests.exceptions.RequestException as e:
+        flash(f'Error uploading file: {e}', 'danger')
+        return None
+
+
 @users.route('/account', methods=['GET', 'POST'])
 @login_required
 def account():
     form = UpdateAccountForm()
     if form.validate_on_submit():
+        # If the user submitted a new picture, upload it
         if form.picture.data:
-            picture_file = save_picture(form.picture.data)
-            current_user.image_file = picture_file
+            public_url = upload_to_vercel_blob(form.picture.data)
+            if public_url:
+                # If upload was successful, save the new URL
+                current_user.image_file = public_url
+
+        # Update other user details
         current_user.username = form.username.data
         current_user.email = form.email.data
         db.session.commit()
+        
         flash('Your account has been updated!', 'success')
         return redirect(url_for('users.account'))
+
     elif request.method == 'GET':
+        # Pre-populate the form with current user data
         form.username.data = current_user.username
         form.email.data = current_user.email
-    image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
+
+    # THE FIX: Pass the full URL directly to the template.
+    # If the user has no picture, this will be None or an empty string.
+    image_file = current_user.image_file 
+
     return render_template(
         'account.html', title='Account', image_file=image_file, form=form
     )
-
 
 
 @users.route("/user/<string:username>")
