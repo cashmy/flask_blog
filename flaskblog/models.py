@@ -12,9 +12,24 @@ class User(db.Model, UserMixin):
 	id = db.Column(db.Integer, primary_key=True)
 	username = db.Column(db.String(20), unique=True, nullable=False)
 	email = db.Column(db.String(120), unique=True, nullable=False)
-	image_file = db.Column(db.String(256), nullable=False, default='default.jpg')
+	image_file = db.Column(db.Text, nullable=False, default='default.jpg')
 	password = db.Column(db.String(60), nullable=False)
 	posts = db.relationship('Post', backref='author', lazy=True)
+
+	@property
+	def image_url(self):
+			"""
+			Returns the correct, full URL for the user's profile picture.
+			Handles both Vercel Blob URLs and local static files.
+			"""
+			if self.image_file and self.image_file.startswith('http'):
+					# This is a full URL from Vercel Blob
+					return self.image_file
+			else:
+					# This is a local filename (e.g., 'default.jpg')
+					# Use a fallback just in case the field is empty
+					filename = self.image_file or 'default.jpg'
+					return url_for('static', filename=f'profile_pics/{filename}')
 
 	def get_reset_token(self, expires_sec=1800):
 				s = Serializer(current_app.config['SECRET_KEY'])

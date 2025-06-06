@@ -111,22 +111,8 @@ def account():
         form.username.data = current_user.username
         form.email.data = current_user.email
 
-    # --- THIS CRUCIAL LOGIC BLOCK WAS MISSING ---
-    # It runs for GET requests AFTER the elif block above.
-    # It GUARANTEES the 'image_file' variable is created before the return statement.
-    image_source = current_user.image_file
-
-    if image_source and image_source.startswith('http'):
-        # Case 1: The user has a full Vercel Blob URL.
-        image_file = image_source
-    else:
-        # Case 2: The user has an old filename (e.g., 'default.jpg').
-        filename = image_source or 'default.jpg'
-        image_file = url_for('static', filename=f'profile_pics/{filename}')
-    
-    # Now, 'image_file' is guaranteed to exist.
     return render_template(
-        'account.html', title='Account', image_file=image_file, form=form
+        'account.html', title='Account', form=form
     )
 
 
