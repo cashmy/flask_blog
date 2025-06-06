@@ -10,7 +10,7 @@ Note: This project is not intended for production use; it is a learning exercise
 
 The original project underwent several key modifications:
 
-* **Framework & Language Update:** Migrated from Flask 1 to **Flask 3.1.1** and **Python 3.12.4**.
+* **Framework & Language Update:** Migrated from Flask 1 to **Flask 3.1.1** and **Python 3.13.4**.
 * **Frontend Styling:** Upgraded from Bootstrap 4 to **Bootstrap 5**.
 * **Development Environment:** Incorporated **UV** for robust virtual environment management and package installation.
 * **Code Quality:** Integrated **Ruff** for comprehensive linting and code formatting, ensuring consistency and maintainability.
