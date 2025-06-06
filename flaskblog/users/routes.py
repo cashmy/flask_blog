@@ -119,9 +119,19 @@ def account():
         form.username.data = current_user.username
         form.email.data = current_user.email
 
-    # THE FIX: Pass the full URL directly to the template.
-    # If the user has no picture, this will be None or an empty string.
-    image_file = current_user.image_file 
+    # --- THIS IS THE CORRECTED LOGIC ---
+    # Determine the correct image URL to render in the template.
+    image_source = current_user.image_file
+
+    if image_source and image_source.startswith('http'):
+        # If the source starts with 'http', it's a full URL from Vercel Blob. Use it directly.
+        image_url_to_render = image_source
+    else:
+        # Otherwise, it's a local filename (like 'default.jpg') from the old system.
+        # Use url_for() to build the correct path to the static folder.
+        # We also provide a fallback to 'default.jpg' if the field is empty.
+        filename = image_source or 'default.jpg'
+        image_url_to_render = url_for('static', filename=f'profile_pics/{filename}')
 
     return render_template(
         'account.html', title='Account', image_file=image_file, form=form
