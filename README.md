@@ -6,6 +6,8 @@ As someone with extensive experience in Django, this project served as a practic
 
 Note: This project is not intended for production use; it is a learning exercise and should be treated as such. However it is at a stage where it can be deployed for educational purposes or as a starting point for further development.
 
+To see the project in action, you can visit the live demo at [Flask_Blog Demo](https://flask-blog-delta-five.vercel.app/).
+
 ## Key Updates and Modernizations 🛠️
 
 The original project underwent several key modifications:
